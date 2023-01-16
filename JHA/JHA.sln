@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JHA", "JHA\JHA.csproj", "{CBF3031E-F7AB-45F3-928A-3BBDCB6AC65A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleService", "SampleService\SampleService.csproj", "{CA3B8107-03F2-40AC-B7CD-96377DBD31E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessService", "ProcessService\ProcessService.csproj", "{CFB62472-8251-472A-BC60-6D1214942AB6}"
@@ -24,10 +22,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CBF3031E-F7AB-45F3-928A-3BBDCB6AC65A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBF3031E-F7AB-45F3-928A-3BBDCB6AC65A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CBF3031E-F7AB-45F3-928A-3BBDCB6AC65A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBF3031E-F7AB-45F3-928A-3BBDCB6AC65A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CA3B8107-03F2-40AC-B7CD-96377DBD31E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CA3B8107-03F2-40AC-B7CD-96377DBD31E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA3B8107-03F2-40AC-B7CD-96377DBD31E8}.Release|Any CPU.ActiveCfg = Release|Any CPU

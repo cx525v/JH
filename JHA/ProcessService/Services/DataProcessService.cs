@@ -7,7 +7,8 @@ namespace ProcessService.Services
 {
     public class DataProcessService: IDataProcessService
     {
-        static readonly object tweet = new object();
+       // static readonly object tweet = new object();
+        readonly TweetResponse tweetResponse = new TweetResponse();
 
         //get data from producer with the topic
         public void ProcessData()
@@ -75,41 +76,39 @@ namespace ProcessService.Services
 
                 });
             });
-            lock (tweet)
+          
+            tweetResponse.TweentTotalCount += records.Count;
+            foreach (var dict in hashDict)
             {
-                TweetResponse.TweentTotalCount += records.Count;
-                foreach (var dict in hashDict)
+                var key = dict.Key;
+                if (tweetResponse.HashTags.ContainsKey(key))
                 {
-                    var key = dict.Key;
-                    if (TweetResponse.HashTags.ContainsKey(key))
-                    {
-                        TweetResponse.HashTags[key] = TweetResponse.HashTags[key] + dict.Value;
-                    }
-                    else
-                    {
-                        TweetResponse.HashTags[key] = dict.Value;
-                    }
-
+                    tweetResponse.HashTags[key] = tweetResponse.HashTags[key] + dict.Value;
+                }
+                else
+                {
+                    tweetResponse.HashTags[key] = dict.Value;
                 }
 
-                TweetResponse.HashTags = TweetResponse.HashTags.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
             }
 
+            tweetResponse.HashTags = tweetResponse.HashTags.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            
         }
 
 
         //Display info to console
         public void DisplayData()
         {
-            if (TweetResponse.TweentTotalCount > 0)
+            if (tweetResponse.TweentTotalCount > 0)
             {
                 Console.WriteLine("############################");
                 Console.WriteLine($"{DateTimeOffset.Now}");
 
-                Console.WriteLine($"Total Tweets Retrieved: {TweetResponse.TweentTotalCount}");
+                Console.WriteLine($"Total Tweets Retrieved: {tweetResponse.TweentTotalCount}");
                 Console.WriteLine("");
                 Console.WriteLine($"Top 10 hash tags:");
-                var top10Dict = (from entry in TweetResponse.HashTags
+                var top10Dict = (from entry in tweetResponse.HashTags
                                  orderby entry.Value descending
                                  select entry
                       ).Take(10)
