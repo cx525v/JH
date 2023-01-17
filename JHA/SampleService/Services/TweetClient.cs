@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Newtonsoft.Json;
 using SampleService.Interfaces;
+using SharedLibrary.Constants;
 using SharedLibrary.Models;
 using System.Text;
 
@@ -64,7 +65,7 @@ namespace SampleService.Services
                 {
                     try
                     {
-                        await producer.ProduceAsync("tweetRawDataTopic", new Message<Null, string> { Value = JsonConvert.SerializeObject(BulkRecords) });
+                        await producer.ProduceAsync(AppConstants.SAMPLE_TOPIC, new Message<Null, string> { Value = JsonConvert.SerializeObject(BulkRecords) });
                         BulkRecords.Clear();
                      }
                     catch (ProduceException<Null, string> e)

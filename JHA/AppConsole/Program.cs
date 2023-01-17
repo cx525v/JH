@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Confluent.Kafka;
 using Newtonsoft.Json;
+using SharedLibrary.Constants;
 using SharedLibrary.Models;
 
 Console.WriteLine("Getting Data");
@@ -13,7 +14,7 @@ var config = new ConsumerConfig
 
 using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
 {
-    consumer.Subscribe("tweetDataTopic");
+    consumer.Subscribe(AppConstants.PROCESS_TOPIC);
     try
     {
         while (true)

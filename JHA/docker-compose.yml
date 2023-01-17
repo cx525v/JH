@@ -18,7 +18,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "tweetRawDataTopic:1:1"
+      #KAFKA_CREATE_TOPICS: "tweetRawDataTopic:1:1"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   sampleservice:
     build:
@@ -36,11 +36,3 @@ services:
       - kafka
     environment:
       - BOOTSTRAP_SERVERS=kafka:29092
-  #jhaconsole:
-  #  build:
-  #    context: .
-  #    dockerfile: JHAConsole/Dockerfile
-  #  depends_on:
-  #    - kafka
-  #  environment:
-  #    - BOOTSTRAP_SERVERS=kafka:29092
