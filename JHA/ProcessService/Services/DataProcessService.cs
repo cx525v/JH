@@ -7,11 +7,17 @@ namespace ProcessService.Services
 {
     public class DataProcessService: IDataProcessService
     {
-       // static readonly object tweet = new object();
+      
         readonly TweetResponse tweetResponse = new TweetResponse();
 
+        private readonly ILogger<DataProcessService> _logger;
+        public DataProcessService(ILogger<DataProcessService> logger)
+        {
+            _logger = logger;
+        }
+
         //get data from producer with the topic
-        public void ProcessData()
+        public async Task ProcessData()
         {
             var config = new ConsumerConfig
             {
@@ -34,26 +40,27 @@ namespace ProcessService.Services
                             if (cr.Message.Value != null)
                             {
                                 List<TwitterRecord> BulkRecords = JsonConvert.DeserializeObject<List<TwitterRecord>>(cr.Message.Value);
-
-                                UpdateData(BulkRecords);
+                                
+                                await UpdateData(BulkRecords);
                             }
 
                         }
                         catch (ConsumeException e)
                         {
-                            Console.WriteLine($"Error occured: {e.Error.Reason}");
+                            _logger.LogError($"Error occured: {e.Error.Reason}");
                         }
                     }
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException er)
                 {
+                    _logger.LogError(er.Message);
                     consumer.Close();
                 }
             }
         }
 
        //data can be saved into database, here upsert into memory
-        private void UpdateData(List<TwitterRecord> records)
+        private async Task UpdateData(List<TwitterRecord> records)
         {
 
             IDictionary<string, int> hashDict = new Dictionary<string, int>();
@@ -93,38 +100,28 @@ namespace ProcessService.Services
             }
 
             tweetResponse.HashTags = tweetResponse.HashTags.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-            
+
+            await PublishData();
         }
 
-
-        //Display info to console
-        public void DisplayData()
+        public async Task PublishData()
         {
-            if (tweetResponse.TweentTotalCount > 0)
+            var config = new ProducerConfig
             {
-                Console.WriteLine("############################");
-                Console.WriteLine($"{DateTimeOffset.Now}");
+                BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS")
+            };
 
-                Console.WriteLine($"Total Tweets Retrieved: {tweetResponse.TweentTotalCount}");
-                Console.WriteLine("");
-                Console.WriteLine($"Top 10 hash tags:");
-                var top10Dict = (from entry in tweetResponse.HashTags
-                                 orderby entry.Value descending
-                                 select entry
-                      ).Take(10)
-                      .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-
-                foreach (var hash in top10Dict)
+            using (var producer = new ProducerBuilder<Null, string>(config).Build())
+            {
+                try
                 {
-                    Console.WriteLine($"\tHashTag: {hash.Key}    {hash.Value}");
+                    await producer.ProduceAsync("tweetDataTopic", new Message<Null, string> { Value = JsonConvert.SerializeObject(tweetResponse) });
                 }
-
-                Console.WriteLine("############################");
+                catch (ProduceException<Null, string> e)
+                {
+                    _logger.LogError($"Delivery TweetResponse failed: {e.Error.Reason}");
+                }
             }
-
-
         }
-
     }
 }
