@@ -13,20 +13,14 @@ namespace ProcessService
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            await _dataProcess.ProcessData();
-            //Thread tid1 = new Thread(new ThreadStart(_dataProcess.ProcessData));
-            //tid1.Start();
-
-            //while (!stoppingToken.IsCancellationRequested)
-            //{
-            //    await Task.Delay(3000, stoppingToken);
-
-            //    _dataProcess.DisplayData();
-
-            //}      
+        {        
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                await Task.Delay(1000, stoppingToken);
+                 _dataProcess.ProcessData();
+            }
         }
-   
       
     }
 }

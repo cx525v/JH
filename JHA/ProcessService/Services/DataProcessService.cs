@@ -1,7 +1,7 @@
-﻿using Confluent.Kafka;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using ProcessService.Interfaces;
 using SharedLibrary.Constants;
+using SharedLibrary.Handlers.Interfaces;
 using SharedLibrary.Models;
 
 namespace ProcessService.Services
@@ -12,52 +12,41 @@ namespace ProcessService.Services
         readonly TweetResponse tweetResponse = new TweetResponse();
 
         private readonly ILogger<DataProcessService> _logger;
-        public DataProcessService(ILogger<DataProcessService> logger)
+        private readonly IConsumerBuilderHandler _consumerHandler;
+        private readonly IProducerBuilderHandler _producerHandler;
+        public DataProcessService(ILogger<DataProcessService> logger, IConsumerBuilderHandler consumerHandler, IProducerBuilderHandler producerHandler)
         {
             _logger = logger;
+            _consumerHandler = consumerHandler;
+            _consumerHandler.Topic = AppConstants.SAMPLE_TOPIC;
+            _consumerHandler.BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS");
+            _consumerHandler.GroupId = "test-consumer-group";
+            _consumerHandler.ProcessCompleted += _consumerHandler_ProcessCompleted;
+            
+            _producerHandler = producerHandler;
+            _producerHandler.Topic = AppConstants.PROCESS_TOPIC;
+            _producerHandler.BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS");
+            _producerHandler.ProcessCompleted += _producerHandler_ProcessCompleted;
+        }
+
+        private void _producerHandler_ProcessCompleted(string data)
+        {
+            _logger.LogInformation($"publish completed: {data}");
+        }
+
+        private void _consumerHandler_ProcessCompleted(string data)
+        {
+            _logger.LogInformation($"get data completed: {data}");
+
+            List<TwitterRecord> BulkRecords = JsonConvert.DeserializeObject<List<TwitterRecord>>(data);
+
+            UpdateData(BulkRecords).ConfigureAwait(false) ;
         }
 
         //get data from producer with the topic
-        public async Task ProcessData()
+        public void ProcessData()
         {
-            var config = new ConsumerConfig
-            {
-                GroupId = "test-consumer-group",
-                BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS"),
-                AutoOffsetReset = AutoOffsetReset.Earliest
-            };
-
-            using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
-            {
-                consumer.Subscribe(AppConstants.SAMPLE_TOPIC);
-                try
-                {
-                    while (true)
-                    {
-                        try
-                        {
-                            var cr = consumer.Consume();
-
-                            if (!string.IsNullOrEmpty(cr.Message.Value))
-                            {
-                                List<TwitterRecord> BulkRecords = JsonConvert.DeserializeObject<List<TwitterRecord>>(cr.Message.Value);
-                                
-                                await UpdateData(BulkRecords);
-                            }
-
-                        }
-                        catch (ConsumeException e)
-                        {
-                            _logger.LogError($"Error occured: {e.Error.Reason}");
-                        }
-                    }
-                }
-                catch (OperationCanceledException er)
-                {
-                    _logger.LogError(er.Message);
-                    consumer.Close();
-                }
-            }
+            _consumerHandler.Subscribe();       
         }
 
        //data can be saved into database, here upsert into memory
@@ -107,22 +96,8 @@ namespace ProcessService.Services
 
         private async Task PublishData()
         {
-            var config = new ProducerConfig
-            {
-                BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS")
-            };
-
-            using (var producer = new ProducerBuilder<Null, string>(config).Build())
-            {
-                try
-                {
-                    await producer.ProduceAsync(AppConstants.PROCESS_TOPIC, new Message<Null, string> { Value = JsonConvert.SerializeObject(tweetResponse) });
-                }
-                catch (ProduceException<Null, string> e)
-                {
-                    _logger.LogError($"Delivery TweetResponse failed: {e.Error.Reason}");
-                }
-            }
+            _producerHandler.Data = JsonConvert.SerializeObject(tweetResponse);
+           await _producerHandler.ProduceAsync();       
         }
     }
 }
