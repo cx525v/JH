@@ -10,7 +10,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>()
         .AddScoped<IAppHttpClientHandler, AppHttpClientHandler>()
         .AddScoped<ITweetClient, TweetClient>()
-        .AddScoped<IProducerBuilderHandler, ProducerBuilderHandler>();
+        .AddScoped<IProducerBuilderHandler, ProducerBuilderHandler>()
+        .AddScoped<IPublishService, PublishService>();
 
     })
     .Build();
