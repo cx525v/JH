@@ -1,65 +1,53 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Confluent.Kafka;
 using Newtonsoft.Json;
 using SharedLibrary.Constants;
+using SharedLibrary.Handlers;
 using SharedLibrary.Models;
 
 Console.WriteLine("Getting Data");
-var config = new ConsumerConfig
-{
-    GroupId = "test-data-group",
-    BootstrapServers = "localhost:9092",
-    AutoOffsetReset = AutoOffsetReset.Earliest
-};
+ConsumerBuilderHandler consumer = new ConsumerBuilderHandler();
+consumer.Topic = AppConstants.PROCESS_TOPIC;
+consumer.GroupId = "test-data-group";
+consumer.BootstrapServers = "localhost:9092";
+consumer.ProcessCompleted += Consumer_ProcessCompleted;
+consumer.Subscribe();
 
-using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
+void Consumer_ProcessCompleted(string data)
 {
-    consumer.Subscribe(AppConstants.PROCESS_TOPIC);
+    if(string.IsNullOrEmpty(data))
+    {
+        return;
+    }
     try
     {
-        while (true)
+        TweetResponse? tweet = JsonConvert.DeserializeObject<TweetResponse>(data);
+        if (tweet != null)
         {
-            try
+            Console.WriteLine("----------------------------");
+            Console.WriteLine($"Total Tweets: {tweet.TweentTotalCount}");
+            Console.WriteLine();
+            Console.WriteLine("Top 10 hashtags:");
+            var hashtags = (from entry in tweet.HashTags
+                            orderby entry.Value descending
+                            select entry
+                      ).Take(10)
+                      .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            if (hashtags != null)
             {
-                var cr = consumer.Consume();
-
-                if (cr!=null && cr.Message != null && !string.IsNullOrEmpty(cr.Message.Value))
+                foreach (var hash in hashtags)
                 {
-                    TweetResponse? tweet = JsonConvert.DeserializeObject<TweetResponse>(cr.Message.Value);
-                    if(tweet != null)
-                    {
-                        Console.WriteLine("----------------------------");
-                        Console.WriteLine($"Total Tweets: {tweet.TweentTotalCount}");
-                        Console.WriteLine();
-                        Console.WriteLine("Top 10 hashtags:");
-                        var hashtags = (from entry in tweet.HashTags
-                                    orderby entry.Value descending
-                                    select entry
-                                  ).Take(10)
-                                  .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-                        if(hashtags != null)
-                        {
-                            foreach (var hash in hashtags)
-                            {
-                                Console.WriteLine($"{hash.Key}   {hash.Value}");
-                            }
-                        }
-                       
-                        Console.WriteLine("----------------------------");
-                    }
-                  
+                    Console.WriteLine($"{hash.Key}   {hash.Value}");
                 }
             }
-            catch (ConsumeException e)
-            {
-                Console.WriteLine($"Error occured: {e.Error.Reason}");
-            }
+
+            Console.WriteLine("----------------------------");
         }
     }
-    catch (OperationCanceledException er)
+    catch(Exception ex)
     {
-        Console.WriteLine(er.Message);
-        consumer.Close();
+        Console.WriteLine(ex.Message);
     }
+   
+
 }

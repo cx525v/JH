@@ -1,5 +1,4 @@
-﻿using Confluent.Kafka;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SampleService.Interfaces;
 using SharedLibrary.Constants;
 using SharedLibrary.Handlers.Interfaces;
@@ -27,6 +26,7 @@ namespace SampleService.Services
 
         private void _producer_ProcessCompleted(string data)
         {
+            _logger.LogInformation($"publish completed: {data}");
             BulkRecords.Clear();
         }
 

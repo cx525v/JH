@@ -1,5 +1,4 @@
-﻿using Confluent.Kafka;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using ProcessService.Interfaces;
 using SharedLibrary.Constants;
 using SharedLibrary.Handlers.Interfaces;
@@ -32,11 +31,13 @@ namespace ProcessService.Services
 
         private void _producerHandler_ProcessCompleted(string data)
         {
-            
+            _logger.LogInformation($"publish completed: {data}");
         }
 
         private void _consumerHandler_ProcessCompleted(string data)
         {
+            _logger.LogInformation($"get data completed: {data}");
+
             List<TwitterRecord> BulkRecords = JsonConvert.DeserializeObject<List<TwitterRecord>>(data);
 
             UpdateData(BulkRecords).ConfigureAwait(false) ;
