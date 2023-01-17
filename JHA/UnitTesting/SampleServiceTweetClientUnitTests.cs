@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SampleService.Interfaces;
 using SampleService.Services;
+using SharedLibrary.Handlers.Interfaces;
 using Xunit;
 
 namespace UnitTesting
@@ -12,10 +13,12 @@ namespace UnitTesting
         private Mock<ILogger<TweetClient>> loggerMock;
         private readonly IConfiguration configuration;
         private readonly Mock<IAppHttpClientHandler> _httpClient;
+        private readonly Mock<IProducerBuilderHandler> _producer;
         public SampleServiceTweetClientUnitTests()
         {
             loggerMock = new Mock<ILogger<TweetClient>>();
             _httpClient = new Mock<IAppHttpClientHandler>();
+            _producer = new Mock<IProducerBuilderHandler>();
             configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory()) 
                 .AddJsonFile(@"appsettings.json", false, false)
@@ -31,7 +34,7 @@ namespace UnitTesting
 
             _httpClient.Setup(x => x.GetStreamAsync()).Returns(Task.FromResult(stream)).Verifiable();
 
-            TweetClient client = new TweetClient(loggerMock.Object, _httpClient.Object);
+            TweetClient client = new TweetClient(loggerMock.Object, _httpClient.Object, _producer.Object);
 
             await client.GetTweetData(CancellationToken.None);
 
@@ -50,7 +53,7 @@ namespace UnitTesting
 
             _httpClient.Setup(x => x.GetStreamAsync()).Returns(Task.FromResult(stream)).Verifiable();
 
-            TweetClient client = new TweetClient(loggerMock.Object, _httpClient.Object);
+            TweetClient client = new TweetClient(loggerMock.Object, _httpClient.Object, _producer.Object);
 
 
             CancellationTokenSource source = new CancellationTokenSource();

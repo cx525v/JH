@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SampleService.Interfaces;
 using SharedLibrary.Constants;
+using SharedLibrary.Handlers.Interfaces;
 using SharedLibrary.Models;
 using System.Text;
 
@@ -11,12 +12,22 @@ namespace SampleService.Services
     {
         private readonly ILogger<TweetClient> _logger;
         private readonly IAppHttpClientHandler _httpClient;
+        private readonly IProducerBuilderHandler _producer;
         public List<TwitterRecord> BulkRecords { get; set; } = new List<TwitterRecord>();
 
-        public TweetClient(ILogger<TweetClient> logger, IAppHttpClientHandler httpClient)
+        public TweetClient(ILogger<TweetClient> logger, IAppHttpClientHandler httpClient, IProducerBuilderHandler producer)
         {
             _logger = logger;
             _httpClient = httpClient;
+            _producer = producer;
+            _producer.BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS");
+            _producer.Topic = AppConstants.SAMPLE_TOPIC;
+            _producer.ProcessCompleted += _producer_ProcessCompleted;
+        }
+
+        private void _producer_ProcessCompleted(string data)
+        {
+            BulkRecords.Clear();
         }
 
         //get twitter sample stream
@@ -56,23 +67,8 @@ namespace SampleService.Services
 
             if (BulkRecords.Count >= 100 || cancellationToken.IsCancellationRequested)
             {
-                var config = new ProducerConfig
-                {
-                    BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS")
-                };
-
-                using (var producer = new ProducerBuilder<Null, string>(config).Build())
-                {
-                    try
-                    {
-                        await producer.ProduceAsync(AppConstants.SAMPLE_TOPIC, new Message<Null, string> { Value = JsonConvert.SerializeObject(BulkRecords) });
-                        BulkRecords.Clear();
-                     }
-                    catch (ProduceException<Null, string> e)
-                    {
-                        _logger.LogError($"Delivery failed: {e.Error.Reason}");
-                    }
-                }
+                _producer.Data = JsonConvert.SerializeObject(BulkRecords);
+                await _producer.ProduceAsync();             
             }
            
         }

@@ -2,6 +2,6 @@
 {
     public interface IDataProcessService
     {
-        Task ProcessData();
+        void ProcessData();
     }
 }
