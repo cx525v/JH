@@ -20,7 +20,7 @@ namespace ProcessService.Services
             _consumerHandler = consumerHandler;
             _consumerHandler.Topic = AppConstants.SAMPLE_TOPIC;
             _consumerHandler.BootstrapServers = Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS");
-            _consumerHandler.GroupId = "test-consumer-group";
+            _consumerHandler.GroupId = AppConstants.SAMPLE_GROUP_ID;
             _consumerHandler.ProcessCompleted += _consumerHandler_ProcessCompleted;
             
             _producerHandler = producerHandler;
@@ -96,7 +96,15 @@ namespace ProcessService.Services
 
         private async Task PublishData()
         {
-            _producerHandler.Data = JsonConvert.SerializeObject(tweetResponse);
+            var hashtags = (from entry in tweetResponse.HashTags
+                            orderby entry.Value descending
+                            select entry
+                   ).Take(10)
+                   .ToDictionary(pair => pair.Key, pair => pair.Value);
+            var data = new TweetResponse();
+            data.TweentTotalCount = tweetResponse.TweentTotalCount;
+            data.HashTags = hashtags;
+            _producerHandler.Data = JsonConvert.SerializeObject(data);
            await _producerHandler.ProduceAsync();       
         }
     }

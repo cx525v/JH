@@ -7,7 +7,7 @@ using SharedLibrary.Models;
 Console.WriteLine("Getting Data");
 ConsumerBuilderHandler consumer = new ConsumerBuilderHandler();
 consumer.Topic = AppConstants.PROCESS_TOPIC;
-consumer.GroupId = "test-data-group";
+consumer.GroupId = AppConstants.PROCESS_GROUP_ID;
 consumer.BootstrapServers = "localhost:9092";
 consumer.ProcessCompleted += Consumer_ProcessCompleted;
 consumer.Subscribe();
@@ -27,15 +27,10 @@ void Consumer_ProcessCompleted(string data)
             Console.WriteLine($"Total Tweets: {tweet.TweentTotalCount}");
             Console.WriteLine();
             Console.WriteLine("Top 10 hashtags:");
-            var hashtags = (from entry in tweet.HashTags
-                            orderby entry.Value descending
-                            select entry
-                      ).Take(10)
-                      .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            if (hashtags != null)
+        
+            if (tweet.HashTags != null)
             {
-                foreach (var hash in hashtags)
+                foreach (var hash in tweet.HashTags)
                 {
                     Console.WriteLine($"{hash.Key}   {hash.Value}");
                 }
