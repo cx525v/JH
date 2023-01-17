@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Newtonsoft.Json;
 using ProcessService.Interfaces;
+using SharedLibrary.Constants;
 using SharedLibrary.Models;
 
 namespace ProcessService.Services
@@ -28,7 +29,7 @@ namespace ProcessService.Services
 
             using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
             {
-                consumer.Subscribe("tweetRawDataTopic");
+                consumer.Subscribe(AppConstants.SAMPLE_TOPIC);
                 try
                 {
                     while (true)
@@ -37,7 +38,7 @@ namespace ProcessService.Services
                         {
                             var cr = consumer.Consume();
 
-                            if (cr.Message.Value != null)
+                            if (!string.IsNullOrEmpty(cr.Message.Value))
                             {
                                 List<TwitterRecord> BulkRecords = JsonConvert.DeserializeObject<List<TwitterRecord>>(cr.Message.Value);
                                 
@@ -104,7 +105,7 @@ namespace ProcessService.Services
             await PublishData();
         }
 
-        public async Task PublishData()
+        private async Task PublishData()
         {
             var config = new ProducerConfig
             {
@@ -115,7 +116,7 @@ namespace ProcessService.Services
             {
                 try
                 {
-                    await producer.ProduceAsync("tweetDataTopic", new Message<Null, string> { Value = JsonConvert.SerializeObject(tweetResponse) });
+                    await producer.ProduceAsync(AppConstants.PROCESS_TOPIC, new Message<Null, string> { Value = JsonConvert.SerializeObject(tweetResponse) });
                 }
                 catch (ProduceException<Null, string> e)
                 {
