@@ -3,6 +3,5 @@
     public interface IDataProcessService
     {
         Task ProcessData();
-      //  void DisplayData();
     }
 }

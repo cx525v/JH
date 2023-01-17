@@ -38,7 +38,7 @@ namespace ProcessService.Services
                         {
                             var cr = consumer.Consume();
 
-                            if (cr.Message.Value != null)
+                            if (!string.IsNullOrEmpty(cr.Message.Value))
                             {
                                 List<TwitterRecord> BulkRecords = JsonConvert.DeserializeObject<List<TwitterRecord>>(cr.Message.Value);
                                 
@@ -105,7 +105,7 @@ namespace ProcessService.Services
             await PublishData();
         }
 
-        public async Task PublishData()
+        private async Task PublishData()
         {
             var config = new ProducerConfig
             {

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SampleService.Interfaces;
 using SampleService.Services;
-using System.Text;
 using Xunit;
 
 namespace UnitTesting

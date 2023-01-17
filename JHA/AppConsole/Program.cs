@@ -23,9 +23,9 @@ using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
             {
                 var cr = consumer.Consume();
 
-                if (cr!=null && cr.Message != null && cr.Message.Value != null)
+                if (cr!=null && cr.Message != null && !string.IsNullOrEmpty(cr.Message.Value))
                 {
-                   TweetResponse tweet = JsonConvert.DeserializeObject<TweetResponse>(cr.Message.Value);
+                    TweetResponse? tweet = JsonConvert.DeserializeObject<TweetResponse>(cr.Message.Value);
                     if(tweet != null)
                     {
                         Console.WriteLine("----------------------------");
