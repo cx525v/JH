@@ -8,6 +8,7 @@
 2. .net6
 
 # How to run the app
-1. run powershell command: docker-compose up --build
-2. run project AppConsole
+1. Replace BearerToken value with your own at appsettings.json of project SampleService
+2. run powershell command: docker-compose up --build
+3. run project AppConsole
 
