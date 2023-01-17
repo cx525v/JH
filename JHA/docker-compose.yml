@@ -20,7 +20,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "tweetRawDataTopic:1:1"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  producer:
+  sampleservice:
     build:
       context: .
       dockerfile: SampleService/Dockerfile
@@ -28,7 +28,7 @@ services:
       - kafka
     environment:
       - BOOTSTRAP_SERVERS=kafka:29092
-  consumer:
+  processservice:
     build:
       context: .
       dockerfile: ProcessService/Dockerfile
@@ -36,3 +36,11 @@ services:
       - kafka
     environment:
       - BOOTSTRAP_SERVERS=kafka:29092
+  #jhaconsole:
+  #  build:
+  #    context: .
+  #    dockerfile: JHAConsole/Dockerfile
+  #  depends_on:
+  #    - kafka
+  #  environment:
+  #    - BOOTSTRAP_SERVERS=kafka:29092

@@ -64,7 +64,7 @@ namespace SampleService.Services
                 {
                     try
                     {
-                        var dr = await producer.ProduceAsync("tweetRawDataTopic", new Message<Null, string> { Value = JsonConvert.SerializeObject(BulkRecords) });
+                        await producer.ProduceAsync("tweetRawDataTopic", new Message<Null, string> { Value = JsonConvert.SerializeObject(BulkRecords) });
                         BulkRecords.Clear();
                      }
                     catch (ProduceException<Null, string> e)

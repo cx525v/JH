@@ -2,7 +2,7 @@
 {
     public interface IDataProcessService
     {
-        void ProcessData();
-        void DisplayData();
+        Task ProcessData();
+      //  void DisplayData();
     }
 }
