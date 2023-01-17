@@ -10,7 +10,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>()
         .AddScoped<IDataProcessService, DataProcessService>()
         .AddScoped<IConsumerBuilderHandler, ConsumerBuilderHandler>()
-        .AddScoped<IProducerBuilderHandler, ProducerBuilderHandler>();
+        .AddScoped<IProducerBuilderHandler, ProducerBuilderHandler>()
+        .AddScoped<IUpdateDataService, UpdateDataService>();
     
     })
     .Build();
